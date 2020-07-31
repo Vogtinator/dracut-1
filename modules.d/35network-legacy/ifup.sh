@@ -628,25 +628,15 @@ if [ -z "$NO_AUTO_DHCP" ] && [ ! -e /tmp/net.${netif}.up ]; then
             ret=$?
         fi
     else
-        if getargs 'ip=dhcp6'; then
+        # No ip lines, no bootdev -> default to dhcp
+        ip=$(getarg ip)
+
+        if getargs 'ip=dhcp6' || [ -z "$ip" -a "$netroot" = "dhcp6" ]; then
             load_ipv6
             do_dhcp -6
             ret=$?
         fi
-        if getargs 'ip=dhcp'; then
-            do_dhcp -4
-            ret=$?
-        fi
-    fi
-
-    # No ip lines, no bootdev -> default to dhcp
-    ip=$(getarg ip)
-
-    if [ -z "$ip" ] && [ ! -e /tmp/net.bootdev ]; then
-        if [ "$netroot" = "dhcp6" ]; then
-            do_dhcp -6
-            ret=$?
-        else
+        if getargs 'ip=dhcp' || [ -z "$ip" -a "$netroot" != "dhcp6" ]; then
             do_dhcp -4
             ret=$?
         fi
